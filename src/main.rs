@@ -9,14 +9,14 @@ fn main() {
     tree.display();
 
     println!("####################      Searching for 753     ######################");
-    if let Some(tree) = tree.search(753) {
+    if let Ok(tree) = tree.search(753) {
         tree.display()
     } else {
         println!("Could not find");
     }
 
     println!("####################      Searching for 752     ######################");
-    if let Some(tree) = tree.search(752) {
+    if let Ok(tree) = tree.search(752) {
         tree.display()
     } else {
         println!("Could not find");

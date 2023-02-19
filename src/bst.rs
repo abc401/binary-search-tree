@@ -1,10 +1,15 @@
 use std::cmp::PartialOrd;
 use std::fmt::Display;
 
-pub struct BST<T> {
-    pub val: T,
-    pub left: Option<Box<Self>>,
-    pub right: Option<Box<Self>>,
+pub struct ValueNotInTree;
+
+pub enum BST<T: PartialOrd> {
+    Null,
+    NonNull {
+        val: T,
+        left: Box<Self>,
+        right: Box<Self>
+    }
 }
 
 impl<T: PartialOrd> From<Vec<T>> for BST<T> {
@@ -20,54 +25,90 @@ impl<T: PartialOrd> From<Vec<T>> for BST<T> {
 
 impl<T: PartialOrd> BST<T> {
     pub fn new(val: T) -> Self {
-        Self {
+        Self::NonNull {
             val,
-            left: None,
-            right: None,
+            left: Box::new(Self::Null),
+            right: Box::new(Self::Null)
         }
     }
 
     pub fn insert(&mut self, val: T) {
-        if val == self.val {
-            return;
+        if let Self::Null = self {
+            *self = Self::new(val);
+            return
         }
 
-        let node;
-        if val > self.val {
-            node = &mut self.right;
+        let Self::NonNull { val: selfval, left, right } = self;
+
+        if val == *selfval {
+            return
+        }
+        if val > *selfval {
+            left.insert(val)
         } else {
-            node = &mut self.left;
+            right.insert(val)
         }
-
-        if let Some(ref mut node) = node {
-            node.insert(val);
-            return;
-        }
-        *node = Some(Box::new(Self::new(val)));
     }
 
-    pub fn search(&self, val: T) -> Option<&Self> {
-
-        if val == self.val {
-            return Some(self)
+    pub fn search(&self, val: T) -> &Self {
+        if let Self::Null = self {
+            return self
         }
 
-        let node;
-        if val > self.val {
-            node = &self.right;
+        let Self::NonNull { val: selfval, left, right } = self;
+        if val == *selfval {
+            return self
+        }
+
+        if val > *selfval {
+            right.search(val)
         } else {
-            node = &self.left;
+            left.search(val)
         }
 
-        if let Some(ref node) = node {
-            return node.search(val);
-        }
-        return None;
+    }
 
+    pub fn search_mut(&mut self, val: T) -> &mut Self {
+        if let Self::Null = self {
+            return self
+        }
+
+        let Self::NonNull { val: selfval, left, right } = self;
+        if val == *selfval {
+            return self
+        }
+
+        if val > *selfval {
+            right.search_mut(val)
+        } else {
+            left.search_mut(val)
+        }
+
+    }
+
+    // pub fn get_parent(&self, val: T) -> &Self {
+    //     let parent = self;
+
+    // }
+
+    pub fn delete(&mut self, val: T) -> Result<(), ValueNotInTree> {
+        let node = self.search_mut(val).ok_or(ValueNotInTree)?;
+        match (&node.left, &node.right) {
+            (None, None) => {
+
+            },
+            (Some(child), None) | (Some(child), None) => {
+
+            },
+            _ => {
+
+            }
+        }
+        Ok(())
     }
 }
 
-impl<T: Display> BST<T> {
+impl<T: Display + PartialOrd> BST<T> {
     pub fn display(&self) {
         print!("{} -> left(", self.val);
         if let Some(ref left) = self.left {
